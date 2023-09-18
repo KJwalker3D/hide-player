@@ -12,12 +12,15 @@ onPlayerClickedObservable.add((clickEvent) => {
   console.log("Clicked ", clickEvent.userId, " details: ", clickEvent.ray);
   // Display a pop-up "Hide this player? Yes / No"
   customPrompt.show()
+
+  // Cross reference userId value with connected players to access data to hide a player 
+
+
 })
 
-
-
-
-
+// To hide the player we could add a hide avatar mod area to the position of the invisible area
+// This will hide us too,..
+// Ideally AvatarShape.hide would be a thing and we could attach it to the userId
 
 
 /// V2
