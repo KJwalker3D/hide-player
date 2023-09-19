@@ -1,121 +1,97 @@
 import { getPlayersInScene, PlayersGetUserDataResponse, getConnectedPlayers, getPlayerData } from '~system/Players'
-import { executeTask } from '@dcl/sdk/ecs'
+import { AvatarAttach, executeTask } from '@dcl/sdk/ecs'
 import { onEnterSceneObservable, onLeaveSceneObservable} from '@dcl/sdk/observables'
 import { onPlayerClickedObservable} from '@dcl/sdk/observables'
-import { customPrompt } from './ui'
-
-/// Simplest solution is to
-/// Hide avatar by clicking on it
-
-
-onPlayerClickedObservable.add((clickEvent) => {
-  console.log("Clicked ", clickEvent.userId, " details: ", clickEvent.ray);
-  // Display a pop-up "Hide this player? Yes / No"
-  customPrompt.show()
-
-  // Cross reference userId value with connected players to access data to hide a player 
-
-
-})
-
-// To hide the player we could add a hide avatar mod area to the position of the invisible area
-// This will hide us too,..
-// Ideally AvatarShape.hide would be a thing and we could attach it to the userId
-
-
-/// V2
-/*
-
-export interface Player {
-    userId: string;
-    isVisible: boolean;
-    displayName: string;
-  }
-  
-  interface PlayerDataResponse {
-    name: string;
-    // Add other properties as needed to match the actual response
-  }
-  
-  export let playerList: Player[] = [];
-  
-
-  
-
-  executeTask(async () => {
-    let connectedPlayers = await getPlayersInScene({});
-    const playerPromises = connectedPlayers.players.map(async (player) => {
-      const userData: PlayersGetUserDataResponse = await getPlayerData({ userId: player.userId });
-      return {
-        userId: player.userId,
-        isVisible: true,
-        displayName: userData.data?.displayName || 'Unknown', // Use the actual property
-      };
-    });
-  
-    playerList = await Promise.all(playerPromises);
-  
-    // Log players and their display names
-    console.log('List of nearby players:', playerList);
-  });
-  
-  // Event when player enters scene
-  onEnterSceneObservable.add((player) => {
-    console.log('player entered scene: ', player.userId);
-    // You can add the player to the playerList here if needed.
-  });
-  
-  // Event when player leaves scene
-  onLeaveSceneObservable.add((player) => {
-    console.log('player left scene: ', player.userId);
-    // You can remove the player from the playerList here if needed.
-  });
-
-*/
+import { engine, AvatarModifierArea, AvatarModifierType, Transform } from '@dcl/sdk/ecs'
+import { Vector3 } from '@dcl/sdk/math'
+import { getUserData } from '~system/UserIdentity'
+import { getRealm } from '~system/Runtime'
 
 
 
+const entity = engine.addEntity()
+let userId: any;
 
+export function startExperience() {
 
-/// V1
-/*
-interface Player {
-    userId: string;
-    isVisible: boolean;
+    engine.addSystem(HideSystem)
 }
 
-export let playerList: Player[] = [];
-
-// Get all players already in scene
-executeTask(async () => {
-  let connectedPlayers = await getPlayersInScene({})
-  connectedPlayers.players.forEach((player) => {
-    console.log('player is nearby: ', player.displayName);
-    playerList = connectedPlayers.players.map((player) => ({
-        userId: player.userId,
-        isVisible: true, //starts true by default
-    }));
+export async function hidePlayer() {
     
-    // Log players
-    console.log('List of nearby players:', playerList);
-  });
-  // Toggle player visibility 
-  
-  function togglePlayerVisibility(userId: string) {
-      const player = playerList.find((p) => p.userId === userId);
-      if (player) {
-          player.isVisible = !player.isVisible
-      }
-  } 
-})
+    let userData = await getUserData({})
+    console.log('user Data:', userData);
+    userId = userData.data?.userId;
 
-// Event when player enters scene
-onEnterSceneObservable.add((player) => {
-  console.log('player entered scene: ', player.userId)
-})
+   const { realmInfo } = await getRealm({})
+   const url = `${realmInfo!.baseUrl}/lambdas/profile/${userId}`
 
-// Event when player leaves scene
-onLeaveSceneObservable.add((player) => {
-  console.log('player left scene: ', player.userId)
-})
-*/
+   //const url = `https://peer.decentral.io/lambdas/profile/0xAaBe0ecFaf9e028d63cf7ea7E772CF52d662691A`
+
+   console.log('using URL: ', url)
+ 
+   try {
+    let response = await fetch (url)
+    let json = await response.json()
+    
+     console.log('full response: ', json)
+     console.log(json.avatars[0].muted) // muted list
+
+     let mutedList = json.avatars[0].muted;
+     //mutedList.push("0x0206e5c67cebe91ad993e5fbcdd0c50e38b2fd00")
+     //mutedList.push("0x258021aa4726a79685d7b14bac29597291a01614")
+    
+     let excludedList: any = []
+
+
+
+     // if a player is in the scene and not on the muted list add them to the exclude
+    let connectedPlayers = await getPlayersInScene({});
+    console.log(connectedPlayers)
+    connectedPlayers.players.forEach ((player, i) => {
+
+        if (!mutedList.find((p: any) => p === player.userId)) {
+            
+            excludedList.push(player.userId)            
+        }
+    })
+
+
+    const player = engine.PlayerEntity;
+    AvatarModifierArea.createOrReplace(entity, {
+        area: Vector3.create(100, 100, 100),
+        modifiers: [AvatarModifierType.AMT_HIDE_AVATARS],
+        excludeIds: excludedList
+    })
+
+    Transform.createOrReplace(entity, {
+        position: Vector3.Zero(),
+        scale: Vector3.create(0.75, 1.8, 0.25),
+        parent: player
+    })
+
+
+   } catch {
+     console.log('an error occurred while reaching for player data')
+   }
+ 
+}
+
+
+var timer = 0;
+function HideSystem(dt: number) {
+
+    if (timer > 0) {
+        // count down
+        timer -= dt
+        //console.log(timer)
+    } else {
+        timer = 10
+        console.log('timer finished')
+        hidePlayer()
+
+    }
+
+}  
+
+

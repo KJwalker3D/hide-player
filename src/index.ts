@@ -1,16 +1,12 @@
 import { engine } from '@dcl/sdk/ecs'
+import { hidePlayer, startExperience } from './block'
 
-import { bounceScalingSystem, circularSystem } from './systems'
-//import { setupUi } from './ui'
-import { customPrompt } from './ui'
 
-// Defining behavior. See `src/systems.ts` file.
-engine.addSystem(circularSystem)
-engine.addSystem(bounceScalingSystem)
+
 
 export function main() {
-  // draw UI
- // setupUi()
- customPrompt.show()
+
+ startExperience()
+
 
 }

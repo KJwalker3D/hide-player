@@ -8,6 +8,7 @@
 		"navmapThumbnail": "images/thumbnail.png",
 		"favicon": "favicon_asset"
 	},
+	
 	"owner": "",
 	"contact": {
 		"name": "SDK",
@@ -20,11 +21,19 @@
 		],
 		"base": "0,0"
 	},
+	
+		"worldConfiguration" : {
+		  "name": "Madagascar.dcl.eth"
+		},
+
 	"requiredPermissions": [
-		"ALLOW_MEDIA_HOSTNAMES"
+		"ALLOW_MEDIA_HOSTNAMES",
+		"USE_FETCH"
 	],
+	
 	"allowedMediaHostnames": [
 		"decentraland.org"
 	],
 	"featureToggles": {}
+	
 }
