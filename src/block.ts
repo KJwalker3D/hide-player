@@ -1,5 +1,5 @@
 import { getPlayersInScene, PlayersGetUserDataResponse, getConnectedPlayers, getPlayerData } from '~system/Players'
-import { AvatarAnchorPointType, AvatarAttach, AvatarModifierArea, AvatarModifierType, InputAction, MeshCollider, MeshRenderer, Transform, engine, pointerEventsSystem} from '@dcl/sdk/ecs'
+import { AvatarAnchorPointType, AvatarAttach, AvatarModifierArea, AvatarModifierType, InputAction, Material, MeshCollider, MeshRenderer, Transform, engine, pointerEventsSystem} from '@dcl/sdk/ecs'
 import { Vector3 } from '@dcl/sdk/math'
 import { getUserData } from '~system/UserIdentity'
 import { displayBlockUI } from './ui/blockUI'
@@ -10,6 +10,14 @@ let userId:string = ""
 let excludedList:string[] = []
 let hideEntity = engine.addEntity()
 let updateHide = false
+
+const eyeOpen = 'images/eyeOpen.png'
+const eyeSelected = 'images/eyeSelected.png'
+const eyeClosed = 'images/eyeClosed.png'
+
+let isEyeOpen: boolean = true
+let isEyeSelected: boolean = false
+let isEyeClosed: boolean = false
 
 export let playerToBlock:any = {}
 
@@ -26,6 +34,42 @@ export async function startExperience() {
     engine.addSystem(HideSystem)
 }
 
+let childEntity = engine.addEntity()
+
+function toggleEyeOpen() {
+
+        Material.setPbrMaterial(childEntity, {
+            texture: Material.Texture.Common({
+            src: eyeOpen,
+            }),
+            roughness: 1,
+            specularIntensity: 0
+        })
+}
+
+function toggleEyeSelected() {
+    
+    Material.setPbrMaterial(childEntity, {
+        texture: Material.Texture.Common({
+            src: eyeSelected
+        }),
+        roughness: 1,
+        specularIntensity: 0
+    })
+}
+
+function toggleEyeClosed() {
+    
+    Material.setPbrMaterial(childEntity, {
+        texture: Material.Texture.Common({
+            src: eyeClosed
+        }),
+        roughness: 1,
+        specularIntensity: 0
+    })
+}
+
+
 function addHoverObject(player:string, name:string){
     if(userId !== player){
         const parentEntity = engine.addEntity()
@@ -35,10 +79,15 @@ function addHoverObject(player:string, name:string){
             avatarId: player
         })
     
-        let childEntity = engine.addEntity()
     
-        MeshRenderer.setCylinder(childEntity)
-        MeshCollider.setCylinder(childEntity)
+        MeshRenderer.setPlane(childEntity)
+        //MeshRenderer.setCylinder(childEntity)
+        MeshCollider.setPlane(childEntity)
+        Material.setPbrMaterial(childEntity, {
+            texture: Material.Texture.Common({
+                src: eyeOpen
+            })
+        })
     
         Transform.create(childEntity, {
             scale: Vector3.create(0.2, 0.2, 0.2),
