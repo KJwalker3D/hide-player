@@ -57,7 +57,8 @@ function addHoverObject(player:string, name:string){
             entity: childEntity,
             opts: {
                 button: InputAction.IA_POINTER,
-                hoverText: 'Block'
+                hoverText: 'Block',
+                maxDistance:10
               }
             },
             function () {
