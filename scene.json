@@ -17,22 +17,20 @@
 	"main": "bin/game.js",
 	"scene": {
 		"parcels": [
-			"0,0"
+			"-138,-116"
 		],
-		"base": "0,0"
+		"base": "-138,-116"
 	},
 	
-		"worldConfiguration" : {
-		  "name": "Madagascar.dcl.eth"
-		},
+	"worldConfiguration" : {
+		"name": "MANABurner.dcl.eth"
+	},
 
 	"requiredPermissions": [
-		"ALLOW_MEDIA_HOSTNAMES",
 		"USE_FETCH"
 	],
 	
 	"allowedMediaHostnames": [
-		"decentraland.org"
 	],
 	"featureToggles": {}
 	

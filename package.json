@@ -23,14 +23,5 @@
     "singleQuote": true,
     "printWidth": 120,
     "trailingComma": "none"
-  },
-  "dependencies": {
-    "dcl-ui-toolkit": "^0.9.1"
-  },
-  "bundledDependencies": [
-    "dcl-ui-toolkit"
-  ],
-  "bundleDependencies": [
-    "dcl-ui-toolkit"
-  ]
+  }
 }
