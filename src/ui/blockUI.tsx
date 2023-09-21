@@ -1,7 +1,7 @@
 import { Color4, Vector3 } from '@dcl/sdk/math'
 import ReactEcs, { Button, Label, ReactEcsRenderer, UiEntity, Position,UiBackgroundProps } from '@dcl/sdk/react-ecs'
 import { addLineBreak, dimensions } from './ui'
-import { hidePlayer, playerToBlock } from '../block'
+import { hidePlayer, playerToBlock, toggleEyeClosed, toggleEyeOpen } from '../block'
 
 export let showBlockUI = false
 
@@ -80,6 +80,7 @@ export function createBlockUI(){
             uiTransform={{ width: '50%', height: '100%' }}
             onMouseDown={() => {
               displayBlockUI(false)
+              toggleEyeOpen()
              } }
           />
         </UiEntity>
@@ -102,6 +103,7 @@ export function createBlockUI(){
             onMouseDown={() => {
               hidePlayer(playerToBlock.userId, true)
               displayBlockUI(false)
+              toggleEyeClosed()
              } }
           />
         </UiEntity>

@@ -1,6 +1,6 @@
 import { getPlayersInScene, PlayersGetUserDataResponse, getConnectedPlayers, getPlayerData } from '~system/Players'
-import { AvatarAnchorPointType, AvatarAttach, AvatarModifierArea, AvatarModifierType, InputAction, Material, MeshCollider, MeshRenderer, Transform, engine, pointerEventsSystem} from '@dcl/sdk/ecs'
-import { Vector3 } from '@dcl/sdk/math'
+import { AvatarAnchorPointType, AvatarAttach, AvatarModifierArea, AvatarModifierType, Billboard, BillboardMode, InputAction, Material, MeshCollider, MeshRenderer, Transform, engine, pointerEventsSystem} from '@dcl/sdk/ecs'
+import { Color4, Vector3 } from '@dcl/sdk/math'
 import { getUserData } from '~system/UserIdentity'
 import { displayBlockUI } from './ui/blockUI'
 
@@ -36,36 +36,46 @@ export async function startExperience() {
 
 let childEntity = engine.addEntity()
 
-function toggleEyeOpen() {
+export function toggleEyeOpen() {
 
         Material.setPbrMaterial(childEntity, {
             texture: Material.Texture.Common({
             src: eyeOpen,
             }),
             roughness: 1,
-            specularIntensity: 0
+            specularIntensity: 0,
+            emissiveTexture: Material.Texture.Common({src: eyeOpen}),
+            emissiveColor: Color4.White(),
+            emissiveIntensity: 1.5
+
         })
 }
 
-function toggleEyeSelected() {
+export function toggleEyeSelected() {
     
     Material.setPbrMaterial(childEntity, {
         texture: Material.Texture.Common({
             src: eyeSelected
         }),
         roughness: 1,
-        specularIntensity: 0
+        specularIntensity: 0,
+        emissiveTexture: Material.Texture.Common({src: eyeSelected}),
+        emissiveColor: Color4.White(),
+        emissiveIntensity: 1.5
     })
 }
 
-function toggleEyeClosed() {
+export function toggleEyeClosed() {
     
     Material.setPbrMaterial(childEntity, {
         texture: Material.Texture.Common({
             src: eyeClosed
         }),
         roughness: 1,
-        specularIntensity: 0
+        specularIntensity: 0,
+        emissiveTexture: Material.Texture.Common({src: eyeClosed}),
+        emissiveColor: Color4.White(),
+        emissiveIntensity: 1.5
     })
 }
 
@@ -83,10 +93,16 @@ function addHoverObject(player:string, name:string){
         MeshRenderer.setPlane(childEntity)
         //MeshRenderer.setCylinder(childEntity)
         MeshCollider.setPlane(childEntity)
+        Billboard.create(childEntity)
         Material.setPbrMaterial(childEntity, {
             texture: Material.Texture.Common({
                 src: eyeOpen
-            })
+            }),
+            roughness: 1,
+            specularIntensity: 0,
+            emissiveTexture: Material.Texture.Common({src: eyeOpen}),
+            emissiveColor: Color4.White(),
+            emissiveIntensity: 1.5
         })
     
         Transform.create(childEntity, {
@@ -114,6 +130,7 @@ function addHoverObject(player:string, name:string){
               console.log("clicked player", player)
               playerToBlock = {userId:player, name:name}
               displayBlockUI(true)
+              toggleEyeSelected()
             }
         )
     }
