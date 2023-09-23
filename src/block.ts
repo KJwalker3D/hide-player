@@ -10,6 +10,7 @@ let userId:string = ""
 let excludedList:string[] = []
 let hideEntity = engine.addEntity()
 let updateHide = false
+
 const eyeOpen = "images/eyeOpen.png";
 const eyeSelected = "images/eyeSelected.png";
 const eyeClosed = "images/eyeClosed.png";
@@ -82,7 +83,7 @@ function addHoverObject(player:string, name:string){
             avatarId: player
         })
     
-        //let childEntity = engine.addEntity()
+        let childEntity = engine.addEntity()
     
         MeshRenderer.setPlane(childEntity)
         MeshCollider.setPlane(childEntity)
@@ -207,12 +208,12 @@ async function refreshBlockedPlayers(){
         console.log('players tracked', players)
 
 
-        players.forEach((data:any,key:string)=>{
-            if(connectedPlayers.players.find((p)=> p.userId !== key)){
-                removeHidePlayer(key)
-            }
-
-        })
+        // players.forEach((data:any,key:string)=>{
+        //     console.log('current player in scene', key)
+        //     if(connectedPlayers.players.find((p)=> p.userId !== key)){
+        //         removeHidePlayer(key)
+        //     }
+        // })
     }
     catch(e){
         console.log('error refreshing blocked players', e)
@@ -227,7 +228,7 @@ function HideSystem(dt: number) {
     } else {
         timer = 10
         refreshBlockedPlayers()
-    }
+    }//
 }  
 
 // export async function hidePlayer() {
