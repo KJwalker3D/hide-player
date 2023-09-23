@@ -27,7 +27,10 @@
 	},
 
 	"requiredPermissions": [
-		"USE_FETCH"
+		"USE_FETCH",
+		"ALLOW_MEDIA_HOSTNAMES",
+		"ALLOW_TO_TRIGGER_AVATAR_EMOTE",
+		"USE_WEB3_API"
 	],
 	
 	"allowedMediaHostnames": [

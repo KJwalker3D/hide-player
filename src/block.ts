@@ -203,17 +203,17 @@ async function refreshBlockedPlayers(){
                     }
                     addHoverObject(player.userId, name)
                 }
-            }
+            }   
         })
         console.log('players tracked', players)
 
 
-        // players.forEach((data:any,key:string)=>{
-        //     console.log('current player in scene', key)
-        //     if(connectedPlayers.players.find((p)=> p.userId !== key)){
-        //         removeHidePlayer(key)
-        //     }
-        // })
+        players.forEach((data:any,key:string)=>{
+            console.log('current player in scene', key)
+            if(connectedPlayers.players.find((p)=> p.userId !== key)){
+                removeHidePlayer(key)
+            }
+        })
     }
     catch(e){
         console.log('error refreshing blocked players', e)
