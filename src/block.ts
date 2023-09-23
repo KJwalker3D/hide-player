@@ -4,6 +4,9 @@ import { Vector3, Color4 } from '@dcl/sdk/math'
 import { getUserData } from '~system/UserIdentity'
 import { displayBlockUI } from './ui/blockUI'
 
+import { MessageBus } from '@dcl/sdk/message-bus'
+
+
 let childEntity = engine.addEntity()
 let players:Map<string, any> = new Map()
 let userId:string = ""
@@ -16,7 +19,7 @@ const eyeSelected = "images/eyeSelected.png";
 const eyeClosed = "images/eyeClosed.png";
 
 export let playerToBlock:any = {}
-
+export let messageBus = new MessageBus()
 
 let tempBlockList:any[] = [
     // "0xa363d0dbe726be787972b125ebc3b0b3db1f248c"//
@@ -71,11 +74,17 @@ export async function startExperience() {
     console.log('user data is', userData)
     userId = userData.data!.userId
 
-    engine.addSystem(HideSystem)
+    engine.addSystem(InSceneSystem)
+
+    messageBus.on("in-scene", (info)=>{
+        refreshBlockedPlayers(info.player)
+    })
 }
 
 function addHoverObject(player:string, name:string){
+    console.log('add hover object function', player, name)
     if(userId !== player){
+        console.log('player is not local user, add object')
         const parentEntity = engine.addEntity()
     
         AvatarAttach.create(parentEntity,{
@@ -83,7 +92,7 @@ function addHoverObject(player:string, name:string){
             avatarId: player
         })
     
-        let childEntity = engine.addEntity()
+        let childEntity = engine.addEntity()//
     
         MeshRenderer.setPlane(childEntity)
         MeshCollider.setPlane(childEntity)
@@ -181,55 +190,67 @@ function removeHidePlayer(player:string){
     console.log('removed hide player entity from scene', p.hiding)//
 }
 
-async function refreshBlockedPlayers(){
+async function refreshBlockedPlayers(player:string){
     try{
         console.log('refreshing scene players')
 
         let connectedPlayers = await getPlayersInScene({});
         console.log('connected players is', connectedPlayers)
-        connectedPlayers.players.forEach(async (player, i) => {
-            if(tempBlockList.find((p)=> p === player.userId)){
+        // connectedPlayers.players.forEach(async (player, i) => {
+            if(tempBlockList.find((p)=> p === player)){
                 console.log('player is in scene and on block list, hide them')
-                hidePlayer(player.userId)
+                hidePlayer(player)
             }
             else{
-                if(!players.has(player.userId)){
-                    let res = await fetch("https://peer.decentral.io/lambdas/profile/"+player.userId)
+                if(!players.has(player)){
+                    let res = await fetch("https://peer.decentral.io/lambdas/profile/"+player)
                     let json = await res.json()
 
                     let name:string = "Guest"
                     if(json.avatars.length > 0){
                         name = json.avatars[0].name
                     }
-                    addHoverObject(player.userId, name)
+                    addHoverObject(player, name)
                 }
             }   
-        })
+        // })
         console.log('players tracked', players)
 
 
-        players.forEach((data:any,key:string)=>{
-            console.log('current player in scene', key)
-            if(connectedPlayers.players.find((p)=> p.userId !== key)){
-                removeHidePlayer(key)
-            }
-        })
+        // players.forEach((data:any,key:string)=>{
+        //     console.log('current player in scene', key)
+        //     if(connectedPlayers.players.find((p)=> p.userId !== key)){
+        //         removeHidePlayer(key)
+        //     }
+        // })
     }
     catch(e){
         console.log('error refreshing blocked players', e)
     }
 }
 
-var timer = 0;
-function HideSystem(dt: number) {
+// var timer = 0;
+// function HideSystem(dt: number) {
 
-    if (timer > 0) {
-        timer -= dt
-    } else {
-        timer = 10
-        refreshBlockedPlayers()
-    }//
-}  
+//     if (timer > 0) {
+//         timer -= dt
+//     } else {
+//         timer = 10
+//         refreshBlockedPlayers()
+//     }//
+// }  
+
+let timer = 0
+function InSceneSystem(dt:number){
+	if(timer > 0){
+		timer -= dt
+	}
+	else{
+		console.log('emit in scene')
+		messageBus.emit('in-scene', {player:userId})
+		timer = 3
+	}
+}
 
 // export async function hidePlayer() {
     
