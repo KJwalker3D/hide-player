@@ -1,6 +1,6 @@
 import { getPlayersInScene, PlayersGetUserDataResponse, getConnectedPlayers, getPlayerData } from '~system/Players'
-import { AvatarAnchorPointType, AvatarAttach, AvatarModifierArea, AvatarModifierType, Billboard, BillboardMode, InputAction, Material, MeshCollider, MeshRenderer, Transform, engine, pointerEventsSystem} from '@dcl/sdk/ecs'
-import { Color4, Vector3 } from '@dcl/sdk/math'
+import { AvatarAnchorPointType, AvatarAttach, AvatarModifierArea, AvatarModifierType, InputAction, MeshCollider, MeshRenderer, Transform, engine, pointerEventsSystem} from '@dcl/sdk/ecs'
+import { Vector3 } from '@dcl/sdk/math'
 import { getUserData } from '~system/UserIdentity'
 import { displayBlockUI } from './ui/blockUI'
 
@@ -11,19 +11,12 @@ let excludedList:string[] = []
 let hideEntity = engine.addEntity()
 let updateHide = false
 
-const eyeOpen = 'images/eyeOpen.png'
-const eyeSelected = 'images/eyeSelected.png'
-const eyeClosed = 'images/eyeClosed.png'
-
-let isEyeOpen: boolean = true
-let isEyeSelected: boolean = false
-let isEyeClosed: boolean = false
-
 export let playerToBlock:any = {}
 
 
 let tempBlockList:any[] = [
     // "0xa363d0dbe726be787972b125ebc3b0b3db1f248c"//
+    // "0xb556db2bc04a0f44272444decdbb373fd33da2b4"
 ]
 
 export async function startExperience() {
@@ -34,52 +27,6 @@ export async function startExperience() {
     engine.addSystem(HideSystem)
 }
 
-let childEntity = engine.addEntity()
-
-export function toggleEyeOpen() {
-
-        Material.setPbrMaterial(childEntity, {
-            texture: Material.Texture.Common({
-            src: eyeOpen,
-            }),
-            roughness: 1,
-            specularIntensity: 0,
-            emissiveTexture: Material.Texture.Common({src: eyeOpen}),
-            emissiveColor: Color4.White(),
-            emissiveIntensity: 1.5
-
-        })
-}
-
-export function toggleEyeSelected() {
-    
-    Material.setPbrMaterial(childEntity, {
-        texture: Material.Texture.Common({
-            src: eyeSelected
-        }),
-        roughness: 1,
-        specularIntensity: 0,
-        emissiveTexture: Material.Texture.Common({src: eyeSelected}),
-        emissiveColor: Color4.White(),
-        emissiveIntensity: 1.5
-    })
-}
-
-export function toggleEyeClosed() {
-    
-    Material.setPbrMaterial(childEntity, {
-        texture: Material.Texture.Common({
-            src: eyeClosed
-        }),
-        roughness: 1,
-        specularIntensity: 0,
-        emissiveTexture: Material.Texture.Common({src: eyeClosed}),
-        emissiveColor: Color4.White(),
-        emissiveIntensity: 1.5
-    })
-}
-
-
 function addHoverObject(player:string, name:string){
     if(userId !== player){
         const parentEntity = engine.addEntity()
@@ -89,21 +36,10 @@ function addHoverObject(player:string, name:string){
             avatarId: player
         })
     
+        let childEntity = engine.addEntity()
     
-        MeshRenderer.setPlane(childEntity)
-        //MeshRenderer.setCylinder(childEntity)
-        MeshCollider.setPlane(childEntity)
-        Billboard.create(childEntity)
-        Material.setPbrMaterial(childEntity, {
-            texture: Material.Texture.Common({
-                src: eyeOpen
-            }),
-            roughness: 1,
-            specularIntensity: 0,
-            emissiveTexture: Material.Texture.Common({src: eyeOpen}),
-            emissiveColor: Color4.White(),
-            emissiveIntensity: 1.5
-        })
+        MeshRenderer.setCylinder(childEntity)
+        MeshCollider.setCylinder(childEntity)
     
         Transform.create(childEntity, {
             scale: Vector3.create(0.2, 0.2, 0.2),
@@ -130,7 +66,6 @@ function addHoverObject(player:string, name:string){
               console.log("clicked player", player)
               playerToBlock = {userId:player, name:name}
               displayBlockUI(true)
-              toggleEyeSelected()
             }
         )
     }
@@ -141,36 +76,49 @@ export function hidePlayer(player:string, update?:boolean){
 
     if(players.has(player)){
         let p = players.get(player)
+
         engine.removeEntity(p.parent)
         engine.removeEntity(p.child)
-        players.delete(player)
+
+        if(!p.hiding){
+            addHideArea(player)
+        }
     }
-
-    players.set(player, {})
-
-    let index = excludedList.findIndex((p)=> p === player)
-    if(index >= 0){
-        excludedList.splice(index,1)
-    }
-
-    if(update){
-        updateHideArea()
+    else{
+        addHideArea(player)
     }
 }
 
-function updateHideArea(){
-    console.log('updating hide area with exclude list', excludedList)
-    AvatarModifierArea.createOrReplace(hideEntity, {
-        area: Vector3.create(100, 100, 100),
+function addHideArea(player:string){
+    let data:any = {}
+
+    let hide = engine.addEntity()
+    AvatarModifierArea.createOrReplace(hide, {
+        area: Vector3.create(1, 2, 1),
         modifiers: [AvatarModifierType.AMT_HIDE_AVATARS],
-        excludeIds: excludedList
+        excludeIds: [userId]
     })
 
-    AvatarAttach.createOrReplace(hideEntity,{
+    AvatarAttach.createOrReplace(hide,{
         anchorPointId: AvatarAnchorPointType.AAPT_POSITION,
-        avatarId: userId
+        avatarId: player
     })
-    updateHide = false
+
+    data.hiding = hide
+    players.set(player, data)
+}
+
+function removeHidePlayer(player:string){
+    let p = players.get(player)
+
+    engine.removeEntity(p.parent)
+    engine.removeEntity(p.child)
+
+    if(p.hiding){
+        engine.removeEntity(p.hiding)
+    }
+
+    console.log('removed hide player entity from scene', p.hiding)//
 }
 
 async function refreshBlockedPlayers(){
@@ -193,20 +141,19 @@ async function refreshBlockedPlayers(){
                     if(json.avatars.length > 0){
                         name = json.avatars[0].name
                     }
-
                     addHoverObject(player.userId, name)
-                    excludedList.push(player.userId)
-                    updateHide = true
                 }
-            }
-
-            console.log('exclude list', excludedList)
-            if(updateHide){
-                console.log('the length of our excluded list has changed, updated hide area')
-                updateHideArea()
             }
         })
         console.log('players tracked', players)
+
+
+        players.forEach((data:any,key:string)=>{
+            if(connectedPlayers.players.find((p)=> p.userId !== key)){
+                removeHidePlayer(key)
+            }
+
+        })
     }
     catch(e){
         console.log('error refreshing blocked players', e)
