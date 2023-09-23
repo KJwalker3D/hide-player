@@ -3,8 +3,8 @@
 	"runtimeVersion": "7",
 	"isPortableExperience": true,
 	"display": {
-		"title": "SDK7 Smart Wearable",
-		"description": "SDK7 Smart Wearable description here",
+		"title": "Hide Player",
+		"description": "Hide player portable experience to hide selected players.",
 		"navmapThumbnail": "images/thumbnail.png",
 		"favicon": "favicon_asset"
 	},
@@ -17,9 +17,9 @@
 	"main": "bin/game.js",
 	"scene": {
 		"parcels": [
-			"-138,-116"
+			"0,0"
 		],
-		"base": "-138,-116"
+		"base": "0,0"
 	},
 	
 	"worldConfiguration" : {
