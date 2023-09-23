@@ -33,7 +33,8 @@
 		"USE_WEB3_API"
 	],
 	
-	"allowedMediaHostnames": [
+	"allowedMediaHostnames":[
+		"lkdcl.co"
 	],
 	"featureToggles": {}
 	
